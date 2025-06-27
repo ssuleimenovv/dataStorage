@@ -1,0 +1,19 @@
+SELECT
+    content_id
+    content_text AS original_text,
+    (
+        SELECT string_agg(
+            CASE
+                WHEN word LIKE '%-%' THEN (
+                    SELECT string_agg(INITCAP(part), '-' ORDER BY idx)
+                    FROM unnest(string_to_array(word, '-')) WITH ORDINALITY as part(part, idx)
+                )
+                ELSE INITCAP(word)
+            END, 
+            ' ' ORDER BY idx
+        )
+        FROM unnest(string_to_array(content_text) WITH ORDINALITY AS word(word, idx))
+    ) AS converted_text
+FROM user_content;
+
+/* unnest in postgresql -> function is used to expand an array into a set of rows*/
